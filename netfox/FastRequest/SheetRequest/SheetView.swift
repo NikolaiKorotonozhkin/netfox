@@ -18,6 +18,7 @@ struct SheetView: View {
     @Binding var isSheetAnti: Bool
     
     let model: SheetObject?
+    let completion: ((EventsTitles?) -> Void)?
     
     var body: some View {
         Color.black.opacity(0.5)
@@ -36,6 +37,9 @@ struct SheetView: View {
                     scanningView
                         .padding()
                         .padding(.bottom)
+                        .onAppear {
+                            completion?(.antivirusActive)
+                        }
                 case .checking:
                     checkingView
                         .padding()
@@ -273,7 +277,3 @@ extension View {
         clipShape(RoundedCorner(radius: radius, corners: corners) )
     }
 }
-
-//#Preview {
-//    SheetView()
-//}

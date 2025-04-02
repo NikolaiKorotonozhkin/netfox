@@ -2,23 +2,37 @@ import Foundation
 import SwiftUI
 import Kingfisher
 
-struct InterScreen : View {
+public struct InterScreen : View {
     var scanObject: Objec
     var scanTitle: String
     var secureScreenNumber: Int
-    let completion: (() -> Void)
+    let completion: ((EventsTitles?) -> Void)
     @State private var progress: CGFloat = 0
     @State private var showAlert: Bool = false
     @State private var redStringCount: Int = 0
     @State private var displayedStrings: [Date: Strig] = [:]
     @State private var displayedAntivirusStrings: [Strig] = []
     @State private var isFinalDisplay: Bool = false
-    
+    @Binding var showNextScreen: Bool
+    @Binding var isDisabled: Bool
+    private let currentTariff: String
+    private let model: AuthorizationOfferModel?
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @Environment(\.verticalSizeClass) var verticalSizeClass
     @Environment(\.dynamicTypeSize) var dynamicTypeSize
     
-    var body: some View {
+    public init(showNextScreen: Binding<Bool>, isDisabled: Binding<Bool>, model: AuthorizationOfferModel?, currentTariff: String, scanObject: Objec, scanTitle: String, secureScreenNumber: Int, completion: @escaping (EventsTitles?) -> Void) {
+        self.model = model
+        self.currentTariff = currentTariff
+        self._showNextScreen = showNextScreen
+        self._isDisabled = isDisabled
+        self.scanObject = scanObject
+        self.scanTitle = scanTitle
+        self.secureScreenNumber = secureScreenNumber
+        self.completion = completion
+    }
+    
+    public var body: some View {
         GeometryReader { geometry in
             let isIpad = geometry.size.width > 600
             let isLandscape = geometry.size.width > geometry.size.height
@@ -29,8 +43,38 @@ struct InterScreen : View {
                 isLandscape: isLandscape
             )
             .onAppear {
+                switch secureScreenNumber {
+                case 1:
+                    completion(.scan1Show)
+                case 2:
+                    completion(.scan2Show)
+                case 3:
+                    completion(.scan3Show)
+                case 4:
+                    completion(.scan4Show)
+                default:
+                    completion(.scan1Show)
+                }
+                
                 displayStringsWithDelay()
             }
+            .onDisappear {
+                switch secureScreenNumber {
+                case 1:
+                    completion(.scan1Hide)
+                case 2:
+                    completion(.scan2Hide)
+                case 3:
+                    completion(.scan3Hide)
+                case 4:
+                    completion(.scan4Hide)
+                default:
+                    completion(.scan1Hide)
+                }
+            }
+        }
+        .fullScreenCover(isPresented: $showNextScreen) {
+            FastRequestResultView(isDisabled: $isDisabled, isSubscriptionActive: .constant(true), model: model, currentTariff: currentTariff, completion: completion)
         }
     }
     
@@ -147,9 +191,6 @@ private extension InterScreen {
                             width: geometry.size.width
                         )
                     )
-                    .onTapGesture {
-                        showAlert = true
-                    }
                 
                 progress(isIpad: isIpad)
                 
@@ -366,6 +407,7 @@ private extension InterScreen {
                     .font(.system(size: isIpad ? 22 : 17))
                     .fontWeight(.bold)
                     .foregroundColor(.black)
+                    .multilineTextAlignment(.center)
             }
             .padding(.horizontal, 16)
             
@@ -402,8 +444,8 @@ private extension InterScreen {
                 Spacer().frame(maxWidth: .infinity, maxHeight: 1).background(Color(red: 60/255, green: 60/255, blue: 67/255, opacity: 0.36))
                 
                 Button {
-                    completion()
-                    showAlert = false
+                    completion(.scan1Action)
+                    completion(nil)
                 } label: {
                     Text(scanObject.messBtn)
                         .font(.system(size: isIpad ? 22 : 17))
@@ -438,6 +480,7 @@ private extension InterScreen {
                     .font(.system(size: isIpad ? 22 : 17))
                     .fontWeight(.bold)
                     .foregroundColor(.black)
+                    .multilineTextAlignment(.center)
                 
                 Text(scanObject.messTltPrc ?? "")
                     .font(.system(size: isIpad ? 16 : 13))
@@ -478,8 +521,8 @@ private extension InterScreen {
                 Spacer().frame(maxWidth: .infinity, maxHeight: 1).background(Color(red: 60/255, green: 60/255, blue: 67/255, opacity: 0.36))
                 
                 Button {
-                    completion()
-                    showAlert = false
+                    completion(.scan2Action)
+                    completion(nil)
                 } label: {
                     Text(scanObject.messBtn)
                         .font(.system(size: isIpad ? 22 : 17))
@@ -514,6 +557,7 @@ private extension InterScreen {
                     .font(.system(size: isIpad ? 22 : 17))
                     .fontWeight(.bold)
                     .foregroundColor(.black)
+                    .multilineTextAlignment(.center)
                 
                 Text(scanObject.messTltCmpl ?? "")
                     .font(.system(size: isIpad ? 16 : 13))
@@ -533,8 +577,8 @@ private extension InterScreen {
                 Spacer().frame(maxWidth: .infinity, maxHeight: 1).background(Color(red: 60/255, green: 60/255, blue: 67/255, opacity: 0.36))
                 
                 Button {
-                    completion()
-                    showAlert = false
+                    completion(.scan3Action)
+                    completion(nil)
                 } label: {
                     Text(scanObject.messBtn)
                         .font(.system(size: isIpad ? 22 : 17))
@@ -570,6 +614,7 @@ private extension InterScreen {
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
                     .foregroundColor(.black)
+                    .multilineTextAlignment(.center)
             }
             .padding(.horizontal, 16)
             
@@ -600,8 +645,8 @@ private extension InterScreen {
                 Spacer().frame(maxWidth: .infinity, maxHeight: 1).background(Color(red: 60/255, green: 60/255, blue: 67/255, opacity: 0.36))
                 
                 Button {
-                    completion()
-                    showAlert = false
+                    completion(.scan4Action)
+                    completion(nil)
                 } label: {
                     Text(scanObject.messBtn)
                         .font(.system(size: isIpad ? 22 : 17))

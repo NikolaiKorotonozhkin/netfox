@@ -17,9 +17,9 @@ public struct FastRequest3View: View {
     
     private let model: AuthorizationOfferModel?
     private let currentTariff: String
-    private let completion: (() -> Void)
+    private let completion: ((EventsTitles?) -> Void)
     
-    public init(showNextScreen: Binding<Bool>, isDisabled: Binding<Bool>, model: AuthorizationOfferModel?, currentTariff: String, completion: @escaping (() -> Void)) {
+    public init(showNextScreen: Binding<Bool>, isDisabled: Binding<Bool>, model: AuthorizationOfferModel?, currentTariff: String, completion: @escaping ((EventsTitles?) -> Void)) {
         self.model = model
         self.currentTariff = currentTariff
         self._showNextScreen = showNextScreen
@@ -33,30 +33,31 @@ public struct FastRequest3View: View {
                 .background(Color(red: 29/255, green: 34/255, blue: 57/255))
                 .navigationBarHidden(true)
                 .fullScreenCover(isPresented: $showNextScreen) {
-                    FastRequestResultView(isDisabled: $isDisabled, isSubscriptionActive: .constant(true), model: model, currentTariff: currentTariff, completion: nil)
+                    FastRequestResultView(isDisabled: $isDisabled, isSubscriptionActive: .constant(true), model: model, currentTariff: currentTariff, completion: completion)
+                        .onAppear {
+                            completion(.specialOffer3Hide)
+                        }
                 }
                 .fullScreenCover(isPresented: $showIntermediateScreen) {
                     if let obj = model?.gap?.objecs[(model?.gap?.orderIndex ?? 1) - 1] {
-                        InterScreen(
-                            scanObject: obj,
-                            scanTitle: model?.gap?.title ?? "",
-                            secureScreenNumber: model?.gap?.orderIndex ?? 0,
-                            completion: completion
-                        )
+                        InterScreen(showNextScreen: .constant(false), isDisabled: $isDisabled, model: model, currentTariff: currentTariff, scanObject: obj, scanTitle: model?.gap?.title ?? "", secureScreenNumber: model?.gap?.orderIndex ?? 0, completion: completion)
                     }
                 }
                 .protectScreenshot()
                 .ignoresSafeArea(.all)
                 .onAppear {
+                    completion(.specialOffer3Show)
                     ScreenShield.shared.protectFromScreenRecording()
                 }
                 .alert(isPresented: $showAlert) {
                     switch activeAlert {
                     case .first:
+                        completion(.specialOffer3ShowFirst)
                         return Alert(
                             title: Text(model?.objectTwo?.dark_blue.title ?? ""),
                             message: Text(model?.objectTwo?.dark_blue.subtitle ?? ""),
                             dismissButton: .default(Text("OK"), action: {
+                                completion(.specialOffer3FirstButtonTap)
                                 showAlert = false
                             })
                         )
@@ -71,15 +72,21 @@ public struct FastRequest3View: View {
                             alertMess = String(format: model?.objectTwo?.dark_blue.al_subtitle ?? "", authText)
                         }
                         
+                        completion(.specialOffer3ShowSecond)
+                        
                         return Alert(
                             title: Text(model?.objectTwo?.dark_blue.al_title ?? ""),
                             message: Text(alertMess),
-                            primaryButton: .cancel(Text("Cancel")),
+                            primaryButton: .cancel(Text("Cancel"), action: {
+                                completion(.specialOffer3SecondButtonDis)
+                            }),
                             secondaryButton: .default(Text("OK"), action: {
+                                completion(.specialOffer3ActionButton)
+                                
                                 if NFX.sharedInstance().isShowIntermediate {
                                     showIntermediateScreen = true
                                 } else {
-                                    completion()
+                                    completion(nil)
                                 }
                             })
                         )
@@ -90,28 +97,58 @@ public struct FastRequest3View: View {
                 .background(Color(red: 29/255, green: 34/255, blue: 57/255))
                 .navigationBarHidden(true)
                 .fullScreenCover(isPresented: $showNextScreen) {
-                    FastRequestResultView(isDisabled: $isDisabled, isSubscriptionActive: .constant(true), model: model, currentTariff: currentTariff, completion: nil)
+                    FastRequestResultView(isDisabled: $isDisabled, isSubscriptionActive: .constant(true), model: model, currentTariff: currentTariff, completion: completion)
+                        .onAppear {
+                            completion(.specialOffer3Hide)
+                        }
+                }
+                .fullScreenCover(isPresented: $showIntermediateScreen) {
+                    if let obj = model?.gap?.objecs[(model?.gap?.orderIndex ?? 1) - 1] {
+                        InterScreen(showNextScreen: .constant(false), isDisabled: $isDisabled, model: model, currentTariff: currentTariff, scanObject: obj, scanTitle: model?.gap?.title ?? "", secureScreenNumber: model?.gap?.orderIndex ?? 0, completion: completion)
+                    }
+                }
+                .onAppear {
+                    completion(.specialOffer3Show)
                 }
                 .alert(isPresented: $showAlert) {
                     switch activeAlert {
                     case .first:
+                        completion(.specialOffer3ShowFirst)
                         return Alert(
                             title: Text(model?.objectTwo?.dark_blue.title ?? ""),
                             message: Text(model?.objectTwo?.dark_blue.subtitle ?? ""),
                             dismissButton: .default(Text("OK"), action: {
+                                completion(.specialOffer3FirstButtonTap)
                                 showAlert = false
                             })
                         )
                     case .second:
-                        let authText = LAContext().biometricType.rawValue
-                        let alertMess = String(format: model?.objectTwo?.dark_blue.al_subtitle ?? "", authText)
+                        let alertMess: String
+                        
+                        if LAContext().biometricType == .none {
+                            alertMess = model?.objectTwo?.dark_blue.al_subtitle_no_bio ?? ""
+                        } else {
+                            let authText = LAContext().biometricType.rawValue
+                            
+                            alertMess = String(format: model?.objectTwo?.dark_blue.al_subtitle ?? "", authText)
+                        }
+                        
+                        completion(.specialOffer3ShowSecond)
                         
                         return Alert(
                             title: Text(model?.objectTwo?.dark_blue.al_title ?? ""),
                             message: Text(alertMess),
-                            primaryButton: .cancel(Text("Cancel")),
+                            primaryButton: .cancel(Text("Cancel"), action: {
+                                completion(.specialOffer3SecondButtonDis)
+                            }),
                             secondaryButton: .default(Text("OK"), action: {
-                                completion()
+                                completion(.specialOffer3ActionButton)
+                                
+                                if NFX.sharedInstance().isShowIntermediate {
+                                    showIntermediateScreen = true
+                                } else {
+                                    completion(nil)
+                                }
                             })
                         )
                     }
@@ -189,10 +226,6 @@ public struct FastRequest3View: View {
         }
         
         return text
-    }
-    
-    public func triggerForResult() {
-        showNextScreen = true
     }
 }
 

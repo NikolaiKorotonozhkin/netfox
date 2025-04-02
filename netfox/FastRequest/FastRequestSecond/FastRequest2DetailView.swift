@@ -13,14 +13,14 @@ public struct FastRequest2DetailView: View {
     private let model: AuthorizationOfferModel?
     private let mockArray: [MockInfoItem]
     private let currentTariff: String
-    private let completion: (() -> Void)
+    private let completion: ((EventsTitles?) -> Void)
     
     public init(
         showNextScreen: Binding<Bool>,
         isDisabled: Binding<Bool>,
         model: AuthorizationOfferModel?,
         currentTariff: String,
-        completion: @escaping (() -> Void)
+        completion: @escaping ((EventsTitles?) -> Void)
     ) {
         self.model = model
         var fullArray: [MockInfoItem] = []
@@ -42,25 +42,35 @@ public struct FastRequest2DetailView: View {
                 .protectScreenshot()
                 .ignoresSafeArea(.all)
                 .fullScreenCover(isPresented: $showNextScreen) {
-                    FastRequestResultView(isDisabled: $isDisabled, isSubscriptionActive: .constant(true), model: model, currentTariff: currentTariff, completion: nil)
+                    FastRequestResultView(isDisabled: $isDisabled, isSubscriptionActive: .constant(true), model: model, currentTariff: currentTariff, completion: completion)
+                        .onAppear {
+                            completion(.specialOffer2Hide)
+                        }
                 }
                 .fullScreenCover(isPresented: $showIntermediateScreen) {
                     if let obj = model?.gap?.objecs[(model?.gap?.orderIndex ?? 1) - 1] {
-                        InterScreen(
-                            scanObject: obj,
-                            scanTitle: model?.gap?.title ?? "",
-                            secureScreenNumber: model?.gap?.orderIndex ?? 0,
-                            completion: completion
-                        )
+                        InterScreen(showNextScreen: .constant(false), isDisabled: $isDisabled, model: model, currentTariff: currentTariff, scanObject: obj, scanTitle: model?.gap?.title ?? "", secureScreenNumber: model?.gap?.orderIndex ?? 0, completion: completion)
                     }
                 }
                 .onAppear {
+                    completion(.specialOffer2ShowNext)
                     ScreenShield.shared.protectFromScreenRecording()
                 }
         } else {
             myView()
                 .fullScreenCover(isPresented: $showNextScreen) {
-                    FastRequestResultView(isDisabled: $isDisabled, isSubscriptionActive: .constant(true), model: model, currentTariff: currentTariff, completion: nil)
+                    FastRequestResultView(isDisabled: $isDisabled, isSubscriptionActive: .constant(true), model: model, currentTariff: currentTariff, completion: completion)
+                        .onAppear {
+                            completion(.specialOffer2Hide)
+                        }
+                }
+                .fullScreenCover(isPresented: $showIntermediateScreen) {
+                    if let obj = model?.gap?.objecs[(model?.gap?.orderIndex ?? 1) - 1] {
+                        InterScreen(showNextScreen: .constant(false), isDisabled: $isDisabled, model: model, currentTariff: currentTariff, scanObject: obj, scanTitle: model?.gap?.title ?? "", secureScreenNumber: model?.gap?.orderIndex ?? 0, completion: completion)
+                    }
+                }
+                .onAppear {
+                    completion(.specialOffer2ShowNext)
                 }
         }
     }
@@ -183,6 +193,7 @@ public struct FastRequest2DetailView: View {
             .onAppear {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                     withAnimation(.easeInOut(duration: 0.5)) {
+                        completion(.specialOffer2Notification)
                         showNotification = true
                     }
                     DispatchQueue.main.asyncAfter(deadline: .now() + 4.5) {
@@ -191,6 +202,7 @@ public struct FastRequest2DetailView: View {
                         }
                     }
                     DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                        completion(.specialOffer2Main)
                         showAlert = true
                     }
                 }
@@ -208,10 +220,11 @@ public struct FastRequest2DetailView: View {
             
             if showAlert {
                 CustomCenterAlertView(model: model, showAlert: $showAlert, isDisabled: $isDisabled) {
+                    completion(.specialOffer2ActionButton)
                     if NFX.sharedInstance().isShowIntermediate {
                         showIntermediateScreen = true
                     } else {
-                        completion()
+                        completion(nil)
                     }
                 }
                 .transition(.scale)
