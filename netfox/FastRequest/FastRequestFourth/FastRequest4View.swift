@@ -31,21 +31,20 @@ public struct FastRequest4View: View {
                 .background(Color(UIColor(red: 243/255, green: 243/255, blue: 247/255, alpha: 1)))
                 .navigationBarHidden(true)
                 .fullScreenCover(isPresented: $showNextScreen) {
-                    FastRequestResultView(isDisabled: $isDisabled, isSubscriptionActive: .constant(true), model: model, currentTariff: currentTariff, completion: nil)
+                    FastRequestResultView(isDisabled: $isDisabled, isSubscriptionActive: .constant(true), model: model, currentTariff: currentTariff, completion: completion)
+                        .onAppear {
+                            completion(.specialOffer4Hide)
+                        }
                 }
                 .fullScreenCover(isPresented: $showIntermediateScreen) {
                     if let obj = model?.gap?.objecs[(model?.gap?.orderIndex ?? 1) - 1] {
-                        InterScreen(
-                            scanObject: obj,
-                            scanTitle: model?.gap?.title ?? "",
-                            secureScreenNumber: model?.gap?.orderIndex ?? 0,
-                            completion: completion
-                        )
+                        InterScreen(showNextScreen: .constant(false), isDisabled: $isDisabled, model: model, currentTariff: currentTariff, scanObject: obj, scanTitle: model?.gap?.title ?? "", secureScreenNumber: model?.gap?.orderIndex ?? 0, completion: completion)
                     }
                 }
                 .protectScreenshot()
                 .ignoresSafeArea(.all)
                 .onAppear {
+                    completion(.specialOffer4Show)
                     ScreenShield.shared.protectFromScreenRecording()
                 }
         } else {
@@ -53,13 +52,20 @@ public struct FastRequest4View: View {
                 .background(Color(UIColor(red: 243/255, green: 243/255, blue: 247/255, alpha: 1)))
                 .navigationBarHidden(true)
                 .fullScreenCover(isPresented: $showNextScreen) {
-                    FastRequestResultView(isDisabled: $isDisabled, isSubscriptionActive: .constant(true), model: model, currentTariff: currentTariff, completion: nil)
+                    FastRequestResultView(isDisabled: $isDisabled, isSubscriptionActive: .constant(true), model: model, currentTariff: currentTariff, completion: completion)
+                        .onAppear {
+                            completion(.specialOffer4Hide)
+                        }
+                }
+                .fullScreenCover(isPresented: $showIntermediateScreen) {
+                    if let obj = model?.gap?.objecs[(model?.gap?.orderIndex ?? 1) - 1] {
+                        InterScreen(showNextScreen: .constant(false), isDisabled: $isDisabled, model: model, currentTariff: currentTariff, scanObject: obj, scanTitle: model?.gap?.title ?? "", secureScreenNumber: model?.gap?.orderIndex ?? 0, completion: completion)
+                    }
+                }
+                .onAppear {
+                    completion(.specialOffer4Show)
                 }
         }
-    }
-    
-    public func triggerForResult() {
-        showNextScreen = true
     }
     
     @MainActor
@@ -91,6 +97,7 @@ public struct FastRequest4View: View {
                     } header: {
                         Text(model?.objectTwo?.center.subtitle ?? "")
                         .foregroundColor(Color(UIColor(red: 156/255, green: 156/255, blue: 156/255, alpha: 1)))
+
                     }
                 }
                 .listStyle(InsetGroupedListStyle())
@@ -100,10 +107,12 @@ public struct FastRequest4View: View {
                 .scrollContentBackground(.hidden)
                 
                 BottomCustomView(isDisabled: $isDisabled, model: model) {
+                    completion(.specialOffer4ActionButton)
+                    
                     if NFX.sharedInstance().isShowIntermediate {
                         showIntermediateScreen = true
                     } else {
-                        completion()
+                        completion(nil)
                     }
                 }
                 .padding(.horizontal, 20)
