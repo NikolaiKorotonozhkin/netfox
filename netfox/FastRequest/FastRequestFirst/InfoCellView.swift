@@ -158,7 +158,7 @@ public struct ResultNewModel: Codable {
     let sheetBottomTitle: String
 }
 
-struct ScnModel: Codable {
+public struct ScnModel: Codable {
     var title_proc            : String?
     var subtitle_proc        : String?
     var title_anim_proc        : String?
@@ -184,7 +184,7 @@ struct ScnModel: Codable {
     var rr_subtitle            : String?
     var features            : [Features]?
     
-    struct Features: Codable {
+    public struct Features: Codable {
         var name    : String?
         var g_status: String?
         var b_status: String?
