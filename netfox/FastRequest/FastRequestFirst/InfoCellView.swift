@@ -34,11 +34,13 @@ public struct EnterModel: Codable {
     public var token: String
     public var screen: Int?
     public var screen2: Int?
+    public var rScreen: Int?
     public var offer: AuthorizationOfferObject?
     
     enum CodingKeys: String, CodingKey {
         case token
         case screen, screen2
+        case rScreen = "r_screen"
         case offer = "specialize"
     }
 }
@@ -84,6 +86,7 @@ public struct AuthorizationOfferModel: Codable {
     var objectTwo: ObjectTwo?
     public var gap: Gap?
     var sheet: SheetObject?
+    var resultNew: ResultNewModel?
     
     enum CodingKeys: String, CodingKey {
         case imageUrl = "image_url"
@@ -113,7 +116,46 @@ public struct AuthorizationOfferModel: Codable {
         case homeIcon = "home_icon"
         case scn, prtd, gap, sheet
         case objectTwo = "object_2"
+        case resultNew = "result_new"
     }
+}
+
+public struct ResultNewModel: Codable {
+    let titleDis: String
+    let titleAct: String
+    let subtitleDis: String
+    let subtitleAct: String
+    let topIconDis: String
+    let topIconAct: String
+    let boxTitleAct: String
+    let boxTitleDis: String
+    let box1Subtitle: String
+    let box2Subtitle: String
+    let box3Subtitle: String
+    let box4Subtitle: String
+    let boxCheckMarkAct: String
+    let boxCheckMarkDis: String
+    let box1IconAct: String
+    let box1IconDis: String
+    let box2IconAct: String
+    let box2IconDis: String
+    let box3IconAct: String
+    let box3IconDis: String
+    let box4IconAct: String
+    let box4IconDis: String
+    let topButtonTitle: String
+    let bottomButtonTitle: String
+    let sheetTitle: String
+    let sheetSubtitle: String
+    let advText1Colored: String
+    let advText2Colored: String
+    let advText3Colored: String
+    let advText4Colored: String
+    let advText1: String
+    let advText2: String
+    let advText3: String
+    let advText4: String
+    let sheetBottomTitle: String
 }
 
 struct ScnModel: Codable {
